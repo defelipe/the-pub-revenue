@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revenue Dashboard 2026 — THE PUB</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000000;--s1:#0a0a0a;--s2:#111111;
+  --border:rgba(255,255,255,0.08);--text:#ffffff;--muted:#555555;
+  --blue:#0047FF;--blue-dim:rgba(0,71,255,0.15);
+  --green:#00FF87;--red:#FF3B3B;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;min-height:100vh;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid var(--border);background:#000;}
+.brand{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--blue);}
+.brand span{color:#fff;}
+header{display:flex;align-items:center;justify-content:space-between;padding:24px 32px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:14px;}
+h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.01em;text-transform:uppercase;color:#fff;line-height:1;}
+h1 em{color:var(--blue);font-style:normal;}
+.legend-inline{display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.line-dash{width:20px;height:2px;flex-shrink:0;background:repeating-linear-gradient(90deg,var(--c) 0,var(--c) 5px,transparent 5px,transparent 9px);}
+.main{padding:24px 32px;}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin-bottom:24px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+.kpi{background:var(--s1);padding:20px 22px;position:relative;transition:background .2s;border-top:2px solid var(--top);}
+.kpi:hover{background:var(--s2);}
+.kpi+.kpi{border-left:1px solid var(--border);}
+.kpi:nth-child(1){--top:var(--blue);}
+.kpi:nth-child(2){--top:#888;}
+.kpi:nth-child(3){--top:var(--blue);}
+.kpi:nth-child(4){--top:#444;}
+.kpi:nth-child(5){--top:var(--red);}
+.kpi-l{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:600;}
+.kpi-v{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;color:#fff;line-height:1;}
+.kpi-s{font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-bottom:1px;border:1px solid var(--border);border-bottom:none;border-radius:2px 2px 0 0;overflow:hidden;}
+.chart-card{background:var(--s1);padding:22px;}
+.chart-card+.chart-card{border-left:1px solid var(--border);}
+.table-card{background:var(--s1);border:1px solid var(--border);border-top:none;border-radius:0 0 2px 2px;padding:22px;}
+.ct{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:16px;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;font-weight:500;}
+th:first-child{text-align:left;}
+td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:#aaa;}
+td:first-child{text-align:left;font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;color:#fff;}
+td.val-25{color:#555;}
+td.val-26r{color:var(--blue);}
+td.val-26p{color:#fff;}
+td.delta-pos{color:var(--green);}
+td.delta-neg{color:var(--red);}
+tr:hover td{background:rgba(255,255,255,0.02);}
+tr.sep td{border-top:1px solid rgba(255,255,255,0.1);font-weight:700;color:#fff;border-bottom:none;padding-top:12px;}
+.badge{display:inline-block;padding:1px 6px;border-radius:2px;font-size:8px;font-weight:700;margin-left:6px;letter-spacing:.08em;font-family:'DM Mono',monospace;text-transform:uppercase;}
+.br{background:rgba(0,71,255,.2);color:var(--blue);}
+.bp{background:rgba(255,255,255,.08);color:#888;}
+.footer{padding:14px 32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.footer-brand{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:#222;}
+.footer-date{font-family:'DM Mono',monospace;font-size:10px;color:#333;}
+</style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const OBJETIVO=1_600_000_000;
+const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const r2025=[28001949.84,74670066.65,82750504.44,67446485.64,133481297.83,95998082.70,156291418.63,94858339.01,50111603.50,91460725.33,36898936.02,240750349.23];
+const total2025=r2025.reduce((a,b)=>a+b,0);
+const pesos2025=r2025.map(v=>v/total2025);
+const real2026=[41075443.10,17277744.84,59269308.84];
+const q1Adj=real2026.map(v=>v+20_000_000);
+const totalQ1=q1Adj.reduce((a,b)=>a+b,0);
+const pesoQ1=pesos2025.slice(0,3).reduce((a,b)=>a+b,0);
+const totalAnual=totalQ1/pesoQ1;
+const projBase=pesos2025.map((p,i)=>i<3?q1Adj[i]:p*totalAnual);
+const wAprDic=r2025.slice(3);const sw=wAprDic.reduce((a,b)=>a+b,0);
+const projBase60=projBase.map((v,i)=>i>=3?v+wAprDic[i-3]/sw*60e6:v);
+const projInf=projBase60.map((v,i)=>i<3?v:v*Math.pow(1.03,i-2));
+const projFinal=projBase60.map((v,i)=>i<3?v:(v+projInf[i])/2);
+const totalFinal=projFinal.reduce((a,b)=>a+b,0);
+const brecha=OBJETIVO-totalFinal;
+const fmt=v=>(v/1e6).toFixed(1)+'MM';
+const pct=v=>(v>=0?'+':'')+v.toFixed(1)+'%';
+const cumF=projFinal.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v);return acc;},[]);
+const cum25=r2025.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v);return acc;},[]);
+const cumQ1_2025=r2025.slice(0,3).reduce((a,b)=>a+b,0);
+const vsQ1=pct((totalQ1-cumQ1_2025)/cumQ1_2025*100);
+const vsTot=pct((totalFinal-total2025)/total2025*100);
+const now=new Date();
+const dateStr=now.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('root').innerHTML=`
+  <div class="topbar">
+    <div class="brand">THE <span>PUB</span></div>
+    <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#333;font-family:'DM Mono',monospace;">Análisis Interno · Confidencial</div>
+  </div>
+  <header>
+    <h1>Revenue <em>Dashboard</em> 2026</h1>
+    <div class="legend-inline">
+      <div class="li"><div class="dot" style="background:#444"></div><span>2025</span></div>
+      <div class="li"><div class="dot" style="background:#0047FF"></div><span style="color:#0047FF">2026 Real</span></div>
+      <div class="li"><div class="line-dash" style="--c:#fff"></div><span style="color:#fff">Proyección 2026</span></div>
+      <div class="li"><div class="line-dash" style="--c:#FF3B3B"></div><span style="color:#FF3B3B">Objetivo</span></div>
+    </div>
+  </header>
+  <div class="main">
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-l">Q1 Real 2026</div><div class="kpi-v" style="color:#0047FF">${fmt(totalQ1)}</div><div class="kpi-s">vs Q1 '25: <span style="color:${totalQ1>=cumQ1_2025?'#00FF87':'#FF3B3B'}">${vsQ1}</span></div></div>
+      <div class="kpi"><div class="kpi-l">Cierre 2025</div><div class="kpi-v" style="color:#888">${fmt(total2025)}</div><div class="kpi-s">Base de referencia</div></div>
+      <div class="kpi"><div class="kpi-l">Proyección 2026</div><div class="kpi-v">${fmt(totalFinal)}</div><div class="kpi-s">vs '25: <span style="color:${totalFinal>=total2025?'#00FF87':'#FF3B3B'}">${vsTot}</span></div></div>
+      <div class="kpi"><div class="kpi-l">Objetivo</div><div class="kpi-v" style="color:#555">1.600MM</div><div class="kpi-s">Target anual</div></div>
+      <div class="kpi"><div class="kpi-l">Brecha</div><div class="kpi-v" style="color:#FF3B3B">${fmt(brecha)}</div><div class="kpi-s">vs objetivo</div></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="ct">Evolución mensual</div>
+        <canvas id="cLine"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="ct">Acumulado vs Objetivo</div>
+        <canvas id="cCum"></canvas>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="ct">Detalle mensual</div>
+      <table>
+        <thead><tr>
+          <th>MES</th><th>2025 REAL</th><th>2026</th><th>Δ VS 2025</th>
+        </tr></thead>
+        <tbody>
+          ${meses.map((m,i)=>{
+            const r25=r2025[i],pf=projFinal[i];
+            const delta=(pf-r25)/r25*100;
+            const isR=i<3;
+            return `<tr>
+              <td>${m}<span class="badge ${isR?'br':'bp'}">${isR?'REAL':'PROY'}</span></td>
+              <td class="val-25">${fmt(r25)}</td>
+              <td class="${isR?'val-26r':'val-26p'}">${fmt(pf)}</td>
+              <td class="${delta>=0?'delta-pos':'delta-neg'}">${pct(delta)}</td>
+            </tr>`;
+          }).join('')}
+          <tr class="sep">
+            <td>TOTAL</td>
+            <td class="val-25">${fmt(total2025)}</td>
+            <td class="val-26p">${fmt(totalFinal)}</td>
+            <td class="${totalFinal>=total2025?'delta-pos':'delta-neg'}">${vsTot}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="footer">
+    <div class="footer-brand">THE PUB · Revenue Analysis 2026</div>
+    <div class="footer-date">${dateStr}</div>
+  </div>
+  `;
+  drawCharts();
+});
+
+function drawCharts(){
+  const gc='rgba(255,255,255,0.05)',tc='#444';
+  const sd={color:tc,grid:{color:gc},ticks:{color:tc,font:{family:'DM Mono',size:9}}};
+  const tt={backgroundColor:'#0a0a0a',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
+    titleFont:{family:'Barlow',weight:'600',size:11},bodyFont:{family:'DM Mono',size:11},padding:10};
+  new Chart(document.getElementById('cLine'),{type:'line',
+    data:{labels:meses,datasets:[
+      {label:'2025',data:r2025,borderColor:'#333',borderWidth:1.5,pointRadius:2,pointBackgroundColor:'#333',tension:0.4,fill:false},
+      {label:'2026 Real',data:[...q1Adj,...Array(9).fill(null)],borderColor:'#0047FF',borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#0047FF',tension:0.4,fill:false},
+      {label:'Proyección',data:projFinal.map((v,i)=>i<3?null:v),borderColor:'#ffffff',borderDash:[6,3],borderWidth:2,pointRadius:3,pointBackgroundColor:'#fff',tension:0.4,fill:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>` ${c.dataset.label}: ${c.raw!=null?fmt(c.raw):'—'}`}}},
+      scales:{x:{...sd},y:{...sd,ticks:{...sd.ticks,callback:v=>fmt(v)}}}}
+  });
+  new Chart(document.getElementById('cCum'),{type:'line',
+    data:{labels:meses,datasets:[
+      {label:'2025',data:cum25,borderColor:'#333',borderDash:[4,3],borderWidth:1.5,pointRadius:0,tension:0.4,fill:false},
+      {label:'Proyección 2026',data:cumF,borderColor:'#ffffff',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#fff',tension:0.4,backgroundColor:'rgba(255,255,255,0.03)',fill:true},
+      {label:'Objetivo',data:Array(12).fill(OBJETIVO),borderColor:'#FF3B3B',borderDash:[8,4],borderWidth:1.5,pointRadius:0,fill:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:true,aspectRatio:2,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},
+      scales:{x:{...sd},y:{...sd,ticks:{...sd.ticks,callback:v=>fmt(v)}}}}
+  });
+}
+</script>
+<div id="root"></div>
+</body>
+</html>
