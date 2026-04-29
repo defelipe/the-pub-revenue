@@ -418,39 +418,38 @@ function saveRevenue(){
 
   var allOps=[];
 
-  if(toSave.length>0){
-    var body=toSave.map(function(d){
-      return {
-        year:2026,
-        month:d.month,
-        amount:d.amount,
-        updated_by:currentUser.username,
-        updated_at:new Date().toISOString()
-      };
-    });
+  // For each month to save: DELETE existing then INSERT fresh (avoids upsert issues)
+  toSave.forEach(function(d){
     allOps.push(
-      fetch(SB_URL+'/rest/v1/pulse_revenue',{
-        method:'POST',
-        headers:Object.assign({},sbH(),{'Prefer':'resolution=merge-duplicates,return=representation'}),
-        body:JSON.stringify(body)
+      fetch(SB_URL+'/rest/v1/pulse_revenue?year=eq.2026&month=eq.'+d.month,{
+        method:'DELETE',headers:sbH()
+      })
+      .then(function(){
+        return fetch(SB_URL+'/rest/v1/pulse_revenue',{
+          method:'POST',
+          headers:sbH(),
+          body:JSON.stringify({
+            year:2026,
+            month:d.month,
+            amount:d.amount,
+            updated_by:currentUser.username,
+            updated_at:new Date().toISOString()
+          })
+        });
       })
       .then(function(r){
         if(!r.ok) return r.text().then(function(t){throw new Error(t);});
-        return r.json();
-      })
-      .then(function(res){
-        console.log('save OK:',res);
-        toSave.forEach(function(d){revenueReal[d.month]=d.amount;});
+        revenueReal[d.month]=d.amount;
       })
     );
-  }
+  });
 
   toDelete.forEach(function(month){
     allOps.push(
       fetch(SB_URL+'/rest/v1/pulse_revenue?year=eq.2026&month=eq.'+month,{
         method:'DELETE',headers:sbH()
       })
-      .then(function(){delete revenueReal[month]; console.log('deleted month',month);})
+      .then(function(){delete revenueReal[month];})
     );
   });
 
