@@ -138,6 +138,19 @@ tr.sep td{border-top:1px solid rgba(255,255,255,0.1);font-weight:700;color:#fff;
 .footer{padding:14px 32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
 .footer-brand{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:#222;}
 .footer-date{font-family:'DM Mono',monospace;font-size:10px;color:#333;}
+
+/* CRM SECTION */
+.section-hdr{margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.section-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:.04em;text-transform:uppercase;color:#fff;display:inline;}
+.section-badge{display:inline-block;padding:3px 10px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(167,139,250,.12);color:#A78BFA;font-family:'DM Mono',monospace;margin-left:10px;vertical-align:middle;}
+.section-sub{font-size:10px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;}
+.crm-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;margin-bottom:20px;border:1px solid var(--border);border-radius:2px;overflow:hidden;}
+.crm-kpi-row .kpi{border-top:2px solid #A78BFA;}
+.crm-charts{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;margin-bottom:16px;}
+.crm-chart-card{background:var(--s1);border:1px solid var(--border);border-radius:4px;padding:20px;}
+.crm-chart-card.full{grid-column:1/-1;}
+.crm-chart-wrap{position:relative;height:240px;}
+.crm-chart-wrap.tall{height:160px;}
 </style>
 </head>
 <body>
@@ -212,6 +225,51 @@ tr.sep td{border-top:1px solid rgba(255,255,255,0.1);font-weight:700;color:#fff;
         <thead><tr><th>MES</th><th>2025 REAL</th><th>2026</th><th>Δ VS 2025</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
+    </div>
+
+
+    <!-- CRM INTELLIGENCE SECTION -->
+    <div style="margin-top:40px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.05);">
+      <div class="section-hdr">
+        <div class="section-title">Inteligencia de Clientes</div>
+        <span class="section-badge">CRM</span>
+        <div class="section-sub">Clientes activos · Commit y revenue de referencia 2026</div>
+      </div>
+      <div class="crm-kpi-row" id="crm-kpi-row">
+        <div class="kpi"><div class="kpi-l">Total Commit</div><div class="kpi-v" id="crm-k1" style="color:#A78BFA">—</div><div class="kpi-s">Clientes activos</div></div>
+        <div class="kpi"><div class="kpi-l">Total Rev. 2025</div><div class="kpi-v" id="crm-k2" style="color:#A78BFA">—</div><div class="kpi-s">Base histórica</div></div>
+        <div class="kpi"><div class="kpi-l">Clientes activos</div><div class="kpi-v" id="crm-k3" style="color:#A78BFA">—</div><div class="kpi-s">Con commit cargado</div></div>
+        <div class="kpi"><div class="kpi-l">Top 3 concentración</div><div class="kpi-v" id="crm-k4" style="color:#A78BFA">—</div><div class="kpi-s">Del commit activos</div></div>
+        <div class="kpi" style="border-top:2px solid var(--red)"><div class="kpi-l">To Be Found</div><div class="kpi-v" id="crm-k5" style="color:var(--red)">—</div><div class="kpi-s">Obj. − Commit activos</div></div>
+      </div>
+      <div class="crm-charts">
+        <div class="crm-chart-card">
+          <div class="ct">Commit por cliente — activos</div>
+          <div class="crm-chart-wrap"><canvas id="cClientes"></canvas></div>
+        </div>
+        <div class="crm-chart-card">
+          <div class="ct">Commit por sector</div>
+          <div class="crm-chart-wrap"><canvas id="cSector"></canvas></div>
+        </div>
+        <div class="crm-chart-card full">
+          <div class="ct">Revenue 2025 vs Commit 2026 por cliente — activos</div>
+          <div class="crm-chart-wrap tall"><canvas id="cComparativo"></canvas></div>
+        </div>
+      </div>
+
+      <!-- PIPELINE COMPLETO -->
+      <div class="crm-chart-card full" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="ct" style="margin-bottom:0">Pipeline completo — Commit por cliente</div>
+          <div style="display:flex;gap:14px;font-size:9px;font-family:'DM Mono',monospace;">
+            <span style="color:#A78BFA">● Activo</span>
+            <span style="color:#38BDF8">● Por Proyecto</span>
+            <span style="color:#C8A96E">● Prospectado</span>
+            <span style="color:#F97316">● En Pausa</span>
+          </div>
+        </div>
+        <div class="crm-chart-wrap" style="height:320px"><canvas id="cPipeline"></canvas></div>
+      </div>
     </div>
 
     <!-- ACORDEÓN INGRESO DE DATOS — solo admin, al final -->
@@ -457,6 +515,7 @@ function doLogin(){
       // Primero cargamos revenue de Supabase, luego renderizamos
       loadRevenue(function(){
         renderDashboard();
+        loadCRMData();
         if(currentUser.role==='admin'){
           el('admin-accordion').style.display='block';
           renderGrid();
@@ -601,6 +660,223 @@ function renderDashboard(){
       interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);}}}},
       scales:{x:{...sd},y:{...sd,ticks:{...sd.ticks,callback:function(v){return fmt(v);}}}}}
+  });
+}
+
+
+// ── CRM DATA ──────────────────────────────────────────────────
+var crmClientes=null,crmSector=null,crmComparativo=null;
+
+function loadCRMData(){
+  // Load all clients except inactivo and nocontactado
+  fetch(SB_URL+'/rest/v1/clients?select=nombre,sector,estado,commit_num,rev_ref_num&estado=in.(activo,proyecto,prospectado,pausa)&order=commit_num.desc.nullslast',{
+    headers:sbH()
+  })
+  .then(function(r){if(!r.ok) throw new Error('HTTP '+r.status); return r.json();})
+  .then(function(rows){
+    console.log('CRM rows:',rows);
+    renderCRM(rows);
+  })
+  .catch(function(e){console.error('loadCRM error:',e);});
+}
+
+function renderCRM(rows){
+  if(!rows||rows.length===0) return;
+
+  // Split: activos only for main charts, all pipeline for pipeline chart
+  var activos=rows.filter(function(r){return r.estado==='activo';});
+  var pipeline=rows; // all non-inactivo/nocontactado
+
+  var nombres=activos.map(function(r){return r.nombre;});
+  var commits=activos.map(function(r){return r.commit_num||0;});
+  var revRefs=activos.map(function(r){return r.rev_ref_num||0;});
+  var totalCommit=commits.reduce(function(a,b){return a+b;},0);
+  var totalRevRef=revRefs.reduce(function(a,b){return a+b;},0);
+  var top3=commits.slice(0,3).reduce(function(a,b){return a+b;},0);
+  var concTop3=totalCommit>0?(top3/totalCommit*100):0;
+  var toBeFound=Math.max(0, OBJETIVO-totalCommit);
+
+  // KPIs
+  el('crm-k1').textContent=fmt(totalCommit);
+  el('crm-k2').textContent=fmt(totalRevRef);
+  el('crm-k3').textContent=activos.length;
+  el('crm-k4').textContent=concTop3.toFixed(0)+'%';
+  el('crm-k5').textContent=fmt(toBeFound);
+
+  var gc='rgba(255,255,255,0.04)',tc='#444';
+  var sd={color:tc,grid:{color:gc},ticks:{color:tc,font:{family:'DM Mono',size:9}}};
+  var tt={backgroundColor:'#0a0a0a',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
+    titleFont:{family:'Barlow',weight:'600',size:11},bodyFont:{family:'DM Mono',size:11},padding:10};
+
+  // Paleta de colores para clientes
+  var palette=['#A78BFA','#7C3AED','#C4B5FD','#8B5CF6','#DDD6FE',
+               '#6D28D9','#EDE9FE','#5B21B6','#F5F3FF','#4C1D95',
+               '#A5B4FC','#818CF8','#6366F1','#4F46E5','#4338CA'];
+
+  // ── CHART 1: Barras horizontales por cliente ──
+  if(crmClientes) crmClientes.destroy();
+  crmClientes=new Chart(el('cClientes'),{
+    type:'bar',
+    data:{
+      labels:nombres,
+      datasets:[{
+        label:'Commit',
+        data:commits,
+        backgroundColor:nombres.map(function(_,i){return palette[i%palette.length]+'CC';}),
+        borderColor:nombres.map(function(_,i){return palette[i%palette.length];}),
+        borderWidth:1,
+        borderRadius:3,
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:function(c){return ' '+fmt(c.raw);}}}},
+      scales:{
+        x:{...sd,ticks:{...sd.ticks,callback:function(v){return fmt(v);}}},
+        y:{...sd,ticks:{color:'#aaa',font:{family:'Barlow',size:11}}}
+      }
+    }
+  });
+
+  // ── CHART 2: Donut por sector ──
+  var sectores={};
+  rows.forEach(function(r){
+    var s=r.sector||'Otros';
+    sectores[s]=(sectores[s]||0)+(r.commit_num||0);
+  });
+  var sNombres=Object.keys(sectores);
+  var sVals=sNombres.map(function(s){return sectores[s];});
+  var sColors=['#A78BFA','#0047FF','#00FF87','#C8A96E','#FF3B3B','#38BDF8','#F472B6','#FB923C','#A3E635'];
+
+  if(crmSector) crmSector.destroy();
+  crmSector=new Chart(el('cSector'),{
+    type:'doughnut',
+    data:{
+      labels:sNombres,
+      datasets:[{
+        data:sVals,
+        backgroundColor:sColors.map(function(c){return c+'BB';}),
+        borderColor:sColors,
+        borderWidth:1,
+        hoverOffset:6,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      cutout:'62%',
+      plugins:{
+        legend:{
+          display:true,
+          position:'right',
+          labels:{color:'#666',font:{family:'DM Mono',size:9},boxWidth:10,padding:10}
+        },
+        tooltip:{...tt,callbacks:{label:function(c){return ' '+c.label+': '+fmt(c.raw)+' ('+((c.raw/totalCommit)*100).toFixed(0)+'%)';}}}
+      }
+    }
+  });
+
+  // ── CHART 3: Barras agrupadas commit vs rev_ref ──
+  if(crmComparativo) crmComparativo.destroy();
+  crmComparativo=new Chart(el('cComparativo'),{
+    type:'bar',
+    data:{
+      labels:nombres,
+      datasets:[
+        {label:'Rev. Ref. 2025',data:revRefs,backgroundColor:'rgba(200,169,110,.5)',borderColor:'#C8A96E',borderWidth:1,borderRadius:3},
+        {label:'Commit 2026',data:commits,backgroundColor:'rgba(167,139,250,.7)',borderColor:'#A78BFA',borderWidth:1,borderRadius:3},
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,labels:{color:'#666',font:{family:'DM Mono',size:9},boxWidth:10,padding:12}},
+        tooltip:{...tt,callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);}}}
+      },
+      scales:{
+        x:{...sd,ticks:{color:'#888',font:{family:'Barlow',size:10}}},
+        y:{...sd,ticks:{...sd.ticks,callback:function(v){return fmt(v);}}}
+      }
+    }
+  });
+
+  // ── PIPELINE CHART ────────────────────────────────────────
+  var stateColors={
+    'activo':'#A78BFA',
+    'proyecto':'#38BDF8',
+    'prospectado':'#C8A96E',
+    'pausa':'#F97316'
+  };
+  var stateLabels={
+    'activo':'Activo',
+    'proyecto':'Por Proyecto',
+    'prospectado':'Prospectado',
+    'pausa':'En Pausa'
+  };
+
+  // Sort pipeline by commit desc
+  var pip=pipeline.slice().sort(function(a,b){return (b.commit_num||0)-(a.commit_num||0);});
+  var pipNombres=pip.map(function(r){return r.nombre;});
+  var pipCommits=pip.map(function(r){return r.commit_num||0;});
+  var pipRevRefs=pip.map(function(r){return r.rev_ref_num||0;});
+  var pipColors=pip.map(function(r){
+    var c=stateColors[r.estado]||'#555';
+    return c+'BB';
+  });
+  var pipBorders=pip.map(function(r){return stateColors[r.estado]||'#555';});
+
+  var crmPipeline=el('cPipeline');
+  if(!crmPipeline) return;
+  if(window._crmPipelineChart) window._crmPipelineChart.destroy();
+  window._crmPipelineChart=new Chart(crmPipeline,{
+    type:'bar',
+    data:{
+      labels:pipNombres,
+      datasets:[
+        {
+          label:'Commit',
+          data:pipCommits,
+          backgroundColor:pipColors,
+          borderColor:pipBorders,
+          borderWidth:1,
+          borderRadius:3,
+        },
+        {
+          label:'Rev. Ref. 2025',
+          data:pipRevRefs,
+          backgroundColor:'rgba(255,255,255,.06)',
+          borderColor:'rgba(255,255,255,.15)',
+          borderWidth:1,
+          borderRadius:3,
+          borderDash:[4,2],
+        }
+      ]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,labels:{color:'#666',font:{family:'DM Mono',size:9},boxWidth:10,padding:10}},
+        tooltip:{...tt,callbacks:{
+          label:function(c){return ' '+c.dataset.label+': '+fmt(c.raw);},
+          afterBody:function(items){
+            var idx=items[0].dataIndex;
+            var r=pip[idx];
+            return ['Estado: '+(stateLabels[r.estado]||r.estado)];
+          }
+        }}
+      },
+      scales:{
+        x:{...sd,ticks:{...sd.ticks,callback:function(v){return fmt(v);}}},
+        y:{...sd,ticks:{color:'#888',font:{family:'Barlow',size:10}}}
+      }
+    }
   });
 }
 
